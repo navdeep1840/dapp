@@ -10,11 +10,12 @@ import React, { useMemo } from "react";
 // Default styles that can be overridden by your app
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { clusterApiUrl } from "@solana/web3.js";
 
 const Wallet = ({ children }: { children: React.ReactNode }) => {
   const network = WalletAdapterNetwork.Devnet;
 
-  //   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
   const wallets = useMemo(
     () => [
       new UnsafeBurnerWalletAdapter(),
@@ -23,11 +24,7 @@ const Wallet = ({ children }: { children: React.ReactNode }) => {
     [network]
   );
   return (
-    <ConnectionProvider
-      endpoint={
-        "https://solana-devnet.g.alchemy.com/v2/90TIq6RTUI6U5sx0wcgF5hQA0j4ul5Vu"
-      }
-    >
+    <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
