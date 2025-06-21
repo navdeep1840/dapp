@@ -6,8 +6,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  createAssociatedTokenAccountInstruction,
   createInitializeMetadataPointerInstruction,
   createInitializeMint2Instruction,
+  createMintToInstruction,
   ExtensionType,
   getAssociatedTokenAddressSync,
   getMintLen,
@@ -20,9 +22,9 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { Coins, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { toast } from "sonner";
 
 const CreateToken = () => {
   const [tokenName, setTokenName] = useState("");
@@ -142,6 +144,57 @@ const CreateToken = () => {
 
       console.log(`Associated Token Address: ${associatedToken.toBase58()}`);
       toast.info(`Token Address: ${associatedToken.toBase58()}`);
+
+      const createAtaTx = new Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey!,
+          associatedToken,
+          wallet.publicKey!,
+          mintKeypair.publicKey,
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      const createAtaSignature = await wallet.sendTransaction(
+        createAtaTx,
+        connection
+      );
+      await connection.confirmTransaction(
+        {
+          blockhash: latestBlockHash.blockhash,
+          lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+          signature: createAtaSignature,
+        },
+        "confirmed"
+      );
+
+      const mintToTx = new Transaction().add(
+        createMintToInstruction(
+          mintKeypair.publicKey,
+          associatedToken,
+          wallet.publicKey!,
+          Number(tokenSupply) * 10 ** 9,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      const mintToSignature = await wallet.sendTransaction(
+        mintToTx,
+        connection
+      );
+
+      await connection.confirmTransaction(
+        {
+          blockhash: latestBlockHash.blockhash,
+          lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+          signature: mintToSignature,
+        },
+        "confirmed"
+      );
+
+      console.log("Minted successfully!");
+      toast.success("Token created successfully!");
     } catch (error) {
       console.log(error);
     } finally {
