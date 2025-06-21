@@ -42,9 +42,7 @@ const AllTabs = () => {
       <TabsContent value="airdrop">
         <Airdrop />
       </TabsContent>
-      <TabsContent value="airdrop">
-        <Airdrop />
-      </TabsContent>
+
       <TabsContent value="sign">
         <SignMessage />
       </TabsContent>
